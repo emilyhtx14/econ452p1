@@ -12,15 +12,11 @@ setwd("/Users/emilyhuang/econ452/econ452p1")
 gss<- readRDS("gss.RDS")
 
 # preschool kids suffer if mother works, higher the number is the more likely
-# the person thinks that preschoolers
+# the person thinks that preschoolers will suffer
 
 # 1 is strongly agree, 4 is strongly disagree
 gss <- gss %>% mutate(fepreschnum = case_match(fepresch, 1~100,2~75,3~50,4~25))
-
 attr(gss$degree,"labels")
-attr(gss$madeg,"labels")
-
-
 
 gss_1988 <- gss[gss$year > 1988, ]
 table(gss$fepreschnum)
@@ -53,13 +49,36 @@ gss3$noincome<-as.numeric(is.na(gss$realinc))
 gss3$realincome<-gss$conrinc/10000 # Measure in tens of thousands
 gss3$realincome[is.na(gss$realincome)]<-0
 
-# create variable for mother's degree
-gss3$mom_degree<- as.numeric(gss3$madeg == 0)
+attr(gss$madeg,"labels")
 
-inc_late<- lm(fepreschnum~realincome*late + noincome*late + Female*late + mom_degree*late, gss3)
+# less than high school  0, high school 1,   associate/junior college 2, bachelor 3, grad 4 
+# discovery that mother with no degree i
+
+# create variable for mother's degree
+gss3$mom_no_degree<- as.numeric(gss3$madeg == 0)
+gss3$mom_hs_degree<- as.numeric(gss3$madeg == 1)
+gss3$mom_jc_degree<- as.numeric(gss3$madeg == 2)
+gss3$mom_bc_degree<- as.numeric(gss3$madeg == 3)
+
+# create variable for father's degree
+gss3$dad_no_degree<- as.numeric(gss3$padeg == 0)
+gss3$dad_hs_degree<- as.numeric(gss3$padeg == 1)
+gss3$dad_jc_degree<- as.numeric(gss3$padeg == 2)
+gss3$dad_bc_degree<- as.numeric(gss3$padeg == 3)
+
+inc_late<- lm(fepreschnum~realincome*late + noincome*late + Female*late + 
+                mom_no_degree*late + mom_hs_degree * late + mom_jc_degree * late 
+              + late * mom_bc_degree + dad_no_degree*late + dad_hs_degree * late + dad_jc_degree * late 
+              + late * dad_bc_degree, gss3)
+
 summary(inc_late)
 stargazer(inc_late, type = "text")
 
+degree<- lm(fepreschnum~mom_no_degree*late + mom_hs_degree * late + mom_jc_degree * late 
+              + late * mom_bc_degree + dad_no_degree*late + dad_hs_degree * late + dad_jc_degree * late 
+            + late * dad_bc_degree, gss3)
+summary(degree)
+stargazer(degree, type = "text")
 
 # plot men vs women fepreschnum
 ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex), linetype = factor(sex))) +
@@ -70,7 +89,8 @@ ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex), linetype 
   theme(legend.position = "bottom") +  # Optionally, move the legend to the bottom
   guides(col = FALSE)
 
+# ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(race))) + geom_smooth()
 
-
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(race)))
-
+# less than high school  0, high school 1, associate/junior college 2, bachelor 3, grad 4 
+# discovery that mother with no degree i
+ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(madeg))) + geom_smooth()
