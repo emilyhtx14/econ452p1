@@ -17,6 +17,11 @@ gss<- readRDS("gss.RDS")
 # 1 is strongly agree, 4 is strongly disagree
 gss <- gss %>% mutate(fepreschnum = case_match(fepresch, 1~100,2~75,3~50,4~25))
 
+attr(gss$degree,"labels")
+attr(gss$madeg,"labels")
+
+
+
 gss_1988 <- gss[gss$year > 1988, ]
 table(gss$fepreschnum)
 ggplot(gss_1988,aes(x=year,y=fepreschnum))+ geom_smooth()
@@ -48,7 +53,10 @@ gss3$noincome<-as.numeric(is.na(gss$realinc))
 gss3$realincome<-gss$conrinc/10000 # Measure in tens of thousands
 gss3$realincome[is.na(gss$realincome)]<-0
 
-inc_late<- lm(fepreschnum~realincome*late +  noincome*late + Female*late, gss3)
+# create variable for mother's degree
+gss3$mom_degree<- as.numeric(gss3$madeg == 0)
+
+inc_late<- lm(fepreschnum~realincome*late + noincome*late + Female*late + mom_degree*late, gss3)
 summary(inc_late)
 stargazer(inc_late, type = "text")
 
@@ -64,4 +72,5 @@ ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex), linetype 
 
 
 
+ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(race)))
 
