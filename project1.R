@@ -31,4 +31,5 @@ gss_1988 <- gss[gss$year > 1988, ]
 table(gss$fepreschnum)
 ggplot(gss_1988,aes(x=year,y=fepreschnum))+ geom_smooth()
 
+# create the dummy variable 
 
