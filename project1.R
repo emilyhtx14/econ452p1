@@ -21,26 +21,37 @@ gss_1988 <- gss[gss$year > 1988, ]
 table(gss$fepreschnum)
 ggplot(gss_1988,aes(x=year,y=fepreschnum))+ geom_smooth()
 
-
-# year is less than 2015 or greater than 2015, subset early years and late years
-gss3 <- gss[gss$year <= 2015  | gss$year > 2015, ]
-gss3$late <- as.numeric(gss3$year > 2015)
-
-# 2 specific years as endpoints
-# gss3 <- gss[gss$year = 1988  | gss$year = 2022, ]
-# gss3$late <- as.numeric(gss3$year = 2022)
-
-
-gss3$Female<- as.numeric(gss3$sex == 2)
-
 # filters out null values for simpler mapping 
 gss_filtered <- gss %>%
   filter(!is.na(year) & !is.na(fepresch) & !is.na(sex))
 
+# year is less than 2015 or greater than 2015, subset early years and late years
+gss3 <- gss[gss$year <= 2006| gss$year > 2006, ]
+gss3$late <- as.numeric(gss3$year > 2006)
+
+# 2 specific years as endpoints
+gss3 <- gss[gss$year == 1988 | gss$year == 2022, ]
+gss3$late <- as.numeric(gss3$year = 2022)
+
+gss3$Female<- as.numeric(gss3$sex == 2)
+
 # interact female with late dummy variable 
-female_late <- lm(fepresch~Female*late, gss3)
+female_late <- lm(fepreschnum~Female*late, gss3)
 summary(female_late)
 stargazer(female_late, type = "text")
+
+# interact late with other variables
+
+# create variable for income 
+
+gss3$noincome<-as.numeric(is.na(gss$realinc))
+gss3$realincome<-gss$conrinc/10000 # Measure in tens of thousands
+gss3$realincome[is.na(gss$realincome)]<-0
+
+inc_late<- lm(fepreschnum~realincome*late +  noincome*late + Female*late, gss3)
+summary(inc_late)
+stargazer(inc_late, type = "text")
+
 
 # plot men vs women fepreschnum
 ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex), linetype = factor(sex))) +
