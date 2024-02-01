@@ -45,24 +45,47 @@ gss_filtered_madeg <- gss_filtered[!is.na(gss_filtered$madeg_label),]
 # Plot based on madeg_label
 ggplot(gss_filtered_madeg, aes(x = year, y = fepreschnum, col = factor(madeg_label))) + geom_smooth()
 
-
-
 # year is less than 2006 or greater than 2015, subset early years and late years
 gss3 <- gss[gss$year <= 2006| gss$year > 2015, ]
 gss3$late <- as.numeric(gss3$year > 2015)
 
-# 2 specific years as endpoints
-# gss3 <- gss[gss$year == 1988 | gss$year == 2022, ]
-# gss3$late <- as.numeric(gss3$year == 2022)
-
+# analysis for female * late
 gss3$Female<- as.numeric(gss3$sex == 2)
 female_late <- lm(fepreschnum~Female*late, gss3)
 summary(female_late)
 stargazer(female_late, type = "text")
 
+# analysis for mother's degree * late
+
+# create variable for mother's degree
+gss3$mom_no_degree <- as.numeric(gss3$madeg == 0)
+gss3$mom_hs_degree <- as.numeric(gss3$madeg == 1)
+gss3$mom_jc_degree <- as.numeric(gss3$madeg == 2)
+gss3$mom_bc_degree <- as.numeric(gss3$madeg == 3)
 
 
-# interact late with other variables
+mother_deg_late<- lm(fepreschnum~ mom_no_degree*late + mom_hs_degree * late + mom_jc_degree * late 
+              + late * mom_bc_degree, gss3)
+
+summary(mother_deg_late)
+stargazer(mother_deg_late, type = "text")
+
+
+# female job intentions + children in the home
+gss3$female_job_c <- as.numeric(gss3$sex == 2 & gss3$wrkstat <= 3 & gss3$childs > 0)
+gss3$female_house_c <- as.numeric(gss3$sex == 2 & gss3$wrkstat == 7 & gss3$childs > 0)
+gss3$female_job_nc <- as.numeric(gss3$sex == 2 & gss3$wrkstat <= 3 & gss3$childs == 0)
+gss3$female_house_nc <- as.numeric(gss3$sex == 2 & gss3$wrkstat == 7 & gss3$childs == 0)
+
+job_intent<- lm(fepreschnum ~female_job_c + female_house_c + female_job_nc + female_house_nc, gss3)
+summary(job_intent)
+stargazer(job_intent, type = "text")
+
+
+attr(gss$wrkstat, "labels")
+attr(gss$childs, "labels")
+
+##########################
 
 # create variable for income 
 
@@ -75,12 +98,6 @@ attr(gss$madeg,"labels")
 # less than high school  0, high school 1,   associate/junior college 2, bachelor 3, grad 4 
 # discovery that mother with no degree i
 
-# create variable for mother's degree
-gss3$mom_no_degree <- as.numeric(gss3$madeg == 0)
-gss3$mom_hs_degree <- as.numeric(gss3$madeg == 1)
-gss3$mom_jc_degree <- as.numeric(gss3$madeg == 2)
-gss3$mom_bc_degree <- as.numeric(gss3$madeg == 3)
-
 # create variable for father's degree
 gss3$dad_no_degree <- as.numeric(gss3$padeg == 0)
 gss3$dad_hs_degree <- as.numeric(gss3$padeg == 1)
@@ -92,9 +109,19 @@ gss3$other_income <- gss3$income - gss3$rincome
 # income diff between respondent income and remaining familial income
 gss3$income_diff <- abs(gss3$other_income - gss3$rincome)
   
-income_normal<- lm(fepreschnum ~ realincome + noincome + income_diff, gss3)
-summary(income_normal)
-stargazer(income_normal, type = "text")
+#income_normal<- lm(fepreschnum ~ realincome + noincome + income_diff + rincome, gss3)
+#summary(income_normal)
+#stargazer(income_normal, type = "text")
+
+all_normal<- lm(fepreschnum~realincome + noincome + Female + 
+                mom_no_degree + mom_hs_degree + mom_jc_degree 
+              +  mom_bc_degree + dad_no_degree + dad_hs_degree + dad_jc_degree
+              +  dad_bc_degree + income_diff, gss3)
+
+all_normal<- lm(fepreschnum~realincome + noincome + Female + 
+                  padeg + madeg, gss3)
+summary(all_normal)
+stargazer(all_normal, type = "text")
 
 all_late<- lm(fepreschnum~realincome*late + noincome*late + Female*late + 
                 mom_no_degree*late + mom_hs_degree * late + mom_jc_degree * late 
@@ -131,31 +158,4 @@ stargazer(degree, type = "text")
 
 
 
-
-# ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(race))) + geom_smooth()
-
-
-
-# less than 4 is looking for work or working in some sense (part time or full time)
-#gss_filtered$female_job_intentions <- as.numeric(gss_filtered$sex == 2 & gss_filtered$wrkstat <= 4)
-# gss_filtered$female_keeping_house <- as.numeric(gss_filtered$sex == 2 & gss_filtered$wrkstat == 7)
-
-#ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(female_job_intentions))) + geom_smooth()
-# ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(female_keeping_house)))
-
-
-gss3$female_job_intentions_c <- as.numeric(gss3$sex == 2 & gss3$wrkstat <= 4 & gss3$childs > 0)
-gss3$female_keeping_house_c <- as.numeric(gss3$sex == 2 & gss3$wrkstat == 7 & gss3$childs > 0)
-gss3$female_job_intentions_nc <- as.numeric(gss3$sex == 2 & gss3$wrkstat <= 4 & gss3$childs == 0)
-gss3$female_keeping_house_nc <- as.numeric(gss3$sex == 2 & gss3$wrkstat == 7 & gss3$childs == 0)
-
-
-# general findings, females with no children and job intentions believe the most that preschoolers will not suffer
-job_intent<- lm(fepreschnum ~ female_job_intentions_c + female_keeping_house_c + female_job_intentions_nc + female_keeping_house_nc, gss3)
-summary(job_intent)
-stargazer(job_intent, type = "text")
-
-
-attr(gss$wrkstat, "labels")
-attr(gss$childs, "labels")
 
