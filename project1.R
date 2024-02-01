@@ -28,10 +28,8 @@ gss_filtered <- gss_filtered %>% mutate(madeg_label
                 = case_match(madeg, 0~"no degree", 1~"<high school",
                 2~"jc/associates", 3~"bachelor's", 4~"grad"))
 gss_filtered <- gss_filtered %>% mutate(sex_label = case_match(madeg, 1~"Male", 2~"Female"))
-# Remove NA values from fepreschnum column
-# gss_filtered <- na.omit(gss_filtered)
 
-# year is less than 2015 or greater than 2015, subset early years and late years
+# year is less than 2006 or greater than 2015, subset early years and late years
 gss3 <- gss[gss$year <= 2006| gss$year > 2015, ]
 gss3$late <- as.numeric(gss3$year > 2015)
 
@@ -40,11 +38,18 @@ gss3$late <- as.numeric(gss3$year > 2015)
 # gss3$late <- as.numeric(gss3$year == 2022)
 
 gss3$Female<- as.numeric(gss3$sex == 2)
-
-# interact female with late dummy variable 
 female_late <- lm(fepreschnum~Female*late, gss3)
 summary(female_late)
 stargazer(female_late, type = "text")
+
+gss_filtered <- gss_filtered[!is.na(gss_filtered$sex_label),]
+ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex_label))) + geom_smooth()
+
+# less than high school  0, high school 1, associate/junior college 2, bachelor 3, grad 4 
+# discovery that mother with no degree i
+
+gss_filtered <- gss_filtered[!is.na(gss_filtered$madeg_label),]
+ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(madeg_label))) + geom_smooth()
 
 # interact late with other variables
 
@@ -113,25 +118,12 @@ degree<- lm(fepreschnum~mom_no_degree*late + mom_hs_degree * late + mom_jc_degre
 summary(degree)
 stargazer(degree, type = "text")
 
-# plot men vs women fepreschnum
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex), linetype = factor(sex))) +
-  geom_smooth() +
-  scale_linetype_manual(values = c("solid", "dashed"), 
-                        labels = c("Male", "Female")) +
-  labs(col = "Sex") +  # Optionally, customize the color legend title
-  theme(legend.position = "bottom") +  # Optionally, move the legend to the bottom
-  guides(col = FALSE)
 
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex_label))) + geom_smooth()
+
 
 # ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(race))) + geom_smooth()
 
-# less than high school  0, high school 1, associate/junior college 2, bachelor 3, grad 4 
-# discovery that mother with no degree i
 
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(madeg))) + geom_smooth()
-
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(madeg_label))) + geom_smooth()
 
 # less than 4 is looking for work or working in some sense (part time or full time)
 #gss_filtered$female_job_intentions <- as.numeric(gss_filtered$sex == 2 & gss_filtered$wrkstat <= 4)
