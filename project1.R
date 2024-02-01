@@ -29,6 +29,24 @@ gss_filtered <- gss_filtered %>% mutate(madeg_label
                 2~"jc/associates", 3~"bachelor's", 4~"grad"))
 gss_filtered <- gss_filtered %>% mutate(sex_label = case_match(madeg, 1~"Male", 2~"Female"))
 
+
+# Filter out NA values in sex_label
+gss_filtered_sex <- gss_filtered[!is.na(gss_filtered$sex_label),]
+
+# Plot based on sex_label
+ggplot(gss_filtered_sex, aes(x = year, y = fepreschnum, col = factor(sex_label))) + geom_smooth()
+
+# less than high school  0, high school 1, associate/junior college 2, bachelor 3, grad 4 
+# discovery that mother with no degree i
+
+# Filter out NA values in madeg_label
+gss_filtered_madeg <- gss_filtered[!is.na(gss_filtered$madeg_label),]
+
+# Plot based on madeg_label
+ggplot(gss_filtered_madeg, aes(x = year, y = fepreschnum, col = factor(madeg_label))) + geom_smooth()
+
+
+
 # year is less than 2006 or greater than 2015, subset early years and late years
 gss3 <- gss[gss$year <= 2006| gss$year > 2015, ]
 gss3$late <- as.numeric(gss3$year > 2015)
@@ -42,14 +60,7 @@ female_late <- lm(fepreschnum~Female*late, gss3)
 summary(female_late)
 stargazer(female_late, type = "text")
 
-gss_filtered <- gss_filtered[!is.na(gss_filtered$sex_label),]
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(sex_label))) + geom_smooth()
 
-# less than high school  0, high school 1, associate/junior college 2, bachelor 3, grad 4 
-# discovery that mother with no degree i
-
-gss_filtered <- gss_filtered[!is.na(gss_filtered$madeg_label),]
-ggplot(gss_filtered, aes(x = year, y = fepreschnum, col = factor(madeg_label))) + geom_smooth()
 
 # interact late with other variables
 
