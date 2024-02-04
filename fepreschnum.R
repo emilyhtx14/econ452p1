@@ -56,7 +56,17 @@ earlydiff<-mean(validYears2[validYears2$year==1988 & validYears2$Female==0,]$fep
 latediff<-mean(validYears2[validYears2$year==2022 & validYears2$Female==0,]$fepresch,na.rm = TRUE)-
   mean(validYears2[validYears2$year==2022 & validYears2$Female==1,]$fepresch,na.rm = TRUE)
 
+# women minus men in 1988
+earlydiff<-mean(validYears2[validYears2$year==1988 & validYears2$Female==1,]$fepresch,na.rm = TRUE)-
+  mean(validYears2[validYears2$year==1988 & validYears2$Female==0,]$fepresch,na.rm = TRUE)
+
+# women minus men in 2022
+latediff<-mean(validYears2[validYears2$year==2022 & validYears2$Female==1,]$fepresch,na.rm = TRUE)-
+  mean(validYears2[validYears2$year==2022 & validYears2$Female==0,]$fepresch,na.rm = TRUE)
+
 diffindiff<-latediff-earlydiff
+print(latediff)
+print(earlydiff)
 print(diffindiff)
 
 model2 <- lm(fepresch~Female*late,data=validYears2)
