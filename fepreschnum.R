@@ -13,31 +13,19 @@ gss<- readRDS("gss.RDS")
 table(gss$fepresch,gss$year)
 validYears<-gss[gss$year %in% c(1988:2022),]
 
-validYears<-validYears[,c("fepresch","year","sex", "madeg", "relig", "marital", "wrkstat", "padeg", "conrinc", "income", "rincome", "fund")]
+validYears<-validYears[,c("fepresch","year","sex", "madeg", "relig", "marital", 
+                          "wrkstat", "padeg", "conrinc", "income", "rincome", "fund")]
 validYears$Female<-as.numeric(validYears$sex==2)
 
 validYears2<-validYears[validYears$year %in% c(1988,2022),]
 validYears2$late<-as.numeric(validYears2$year==2022)
 validYears2<-na.omit(validYears2)
 
-# women no degree - women with degree 
-earlydiff<-mean(validYears2[validYears2$year==1988 & validYears2$madeg==0,]$fepresch,na.rm = TRUE)-
-  mean(validYears2[validYears2$year==1988 & validYears2$madeg > 0,]$fepresch,na.rm = TRUE)
-
-latediff<-mean(validYears2[validYears2$year==2022 & validYears2$madeg==0,]$fepresch,na.rm = TRUE)-
-  mean(validYears2[validYears2$year==2022 & validYears2$madeg > 0,]$fepresch,na.rm = TRUE)
-
 # 1- strongly agree that child will suffer if mother works, 4 strongly disagree that child will suffer if mother works
-attr(gss$fepresch, "labels")
-
-print(latediff)
-print(earlydiff)
-diffindiff<-latediff-earlydiff
-print(diffindiff)
 
 validYears$mom_no_degree<-as.numeric(validYears$madeg == 0)
-
 validYears2$mom_no_degree<-as.numeric(validYears2$madeg == 0)
+
 model1 <- lm(fepresch~mom_no_degree*late,data=validYears2)
 summary(model1)
 stargazer(model1, type = "text", single.row = TRUE)
@@ -50,27 +38,6 @@ ggplot(validYears,aes(x=year,y=fepresch,color=as.factor(mom_no_degree)))+
        y="is the mother working harmful to children?",
        color="hasNoDegree")+
   theme_minimal()
-
-# men minus women in 1988
-earlydiff<-mean(validYears2[validYears2$year==1988 & validYears2$Female==0,]$fepresch,na.rm = TRUE)-
-  mean(validYears2[validYears2$year==1988 & validYears2$Female==1,]$fepresch,na.rm = TRUE)
-
-# men minus women in 2022
-latediff<-mean(validYears2[validYears2$year==2022 & validYears2$Female==0,]$fepresch,na.rm = TRUE)-
-  mean(validYears2[validYears2$year==2022 & validYears2$Female==1,]$fepresch,na.rm = TRUE)
-
-# women minus men in 1988
-earlydiff<-mean(validYears2[validYears2$year==1988 & validYears2$Female==1,]$fepresch,na.rm = TRUE)-
-  mean(validYears2[validYears2$year==1988 & validYears2$Female==0,]$fepresch,na.rm = TRUE)
-
-# women minus men in 2022
-latediff<-mean(validYears2[validYears2$year==2022 & validYears2$Female==1,]$fepresch,na.rm = TRUE)-
-  mean(validYears2[validYears2$year==2022 & validYears2$Female==0,]$fepresch,na.rm = TRUE)
-
-diffindiff<-latediff-earlydiff
-print(latediff)
-print(earlydiff)
-print(diffindiff)
 
 model2 <- lm(fepresch~Female*late,data=validYears2)
 summary(model2)
@@ -101,7 +68,6 @@ ggplot(gss_filtered_madeg, aes(x = year, y = fepresch,
 validYears$late<-as.numeric(validYears$year==2022)
 
 # other regressors included
-# validYears$noincome<-as.numeric(is.na(validYears$realinc))
 validYears$realincome<-validYears$conrinc/10000 # Measure in tens of thousands
 # create variables for difference in income
 validYears$other_income <- validYears$income - validYears$rincome
@@ -134,8 +100,5 @@ validYears$male_house <- as.numeric(validYears$sex == 1 & validYears$wrkstat == 
 
 job_intent<- lm(fepresch ~ female_job + female_house + male_job + male_house, validYears)
 summary(job_intent)
-stargazer(job_intent, type = "text")
-
-attr(gss$wrkstat, "labels")
-attr(gss$childs, "labels")
+stargazer(job_intent, type = "text", single.row = TRUE)
 
