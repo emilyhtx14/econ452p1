@@ -12,9 +12,9 @@ gss<- readRDS("gss.RDS")
 
 table(gss$fepresch,gss$year)
 validYears<-gss[gss$year %in% c(1988:2022),]
-validYears<-validYears[,c("fepresch","year","sex", "madeg", "relig", "marital", "wrkstat", "padeg", "conrinc", "income", "rincome")]
+
+validYears<-validYears[,c("fepresch","year","sex", "madeg", "relig", "marital", "wrkstat", "padeg", "conrinc", "income", "rincome", "fund")]
 validYears$Female<-as.numeric(validYears$sex==2)
-validYears$fepresch<-4-validYears$fepresch
 
 validYears2<-validYears[validYears$year %in% c(1988,2022),]
 validYears2$late<-as.numeric(validYears2$year==2022)
@@ -26,6 +26,9 @@ earlydiff<-mean(validYears2[validYears2$year==1988 & validYears2$madeg==0,]$fepr
 
 latediff<-mean(validYears2[validYears2$year==2022 & validYears2$madeg==0,]$fepresch,na.rm = TRUE)-
   mean(validYears2[validYears2$year==2022 & validYears2$madeg > 0,]$fepresch,na.rm = TRUE)
+
+# 1- strongly agree that child will suffer if mother works, 4 strongly disagree that child will suffer if mother works
+attr(gss$fepresch, "labels")
 
 print(latediff)
 print(earlydiff)
@@ -106,6 +109,8 @@ validYears$other_income <- validYears$income - validYears$rincome
 validYears$income_diff <- abs(validYears$other_income - validYears$rincome)
 
 validYears$christian <- as.numeric(validYears$relig == 1 | validYears$relig == 2 | validYears$relig == 10 | validYears$relig == 13)
+validYears$fundamentalism <- as.numeric(validYears$fund == 1)
+
 validYears$no_relig <- as.numeric(validYears$relig == 4)
 validYears$married <- as.numeric(validYears$marital == 1)
 validYears$working <- as.numeric(validYears$wrkstat <= 2)
@@ -115,7 +120,7 @@ validYears$madeg_post_college<- as.numeric(validYears$madeg >= 3)
 validYears$padeg_post_hs<- as.numeric(validYears$padeg > 1)
 
 all_vars<- lm(fepresch ~ no_padeg + madeg_post_college + married + christian 
-              + no_relig + wrkstat + Female * late + mom_no_degree * late + realincome + income_diff, validYears)
+              + no_relig + wrkstat + Female * late + mom_no_degree * late + realincome + income_diff + fundamentalism, validYears)
 
 summary(all_vars)
 stargazer(all_vars, type = "text", single.row = TRUE)
